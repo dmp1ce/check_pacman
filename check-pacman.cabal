@@ -1,0 +1,44 @@
+name:                check-pacman
+version:             0.1.0.0
+synopsis:            Nagios monitoring plugin for checking for Pacman updates
+description:         Please see README.md
+
+license:             PublicDomain
+license-file:        LICENSE
+author:              David Parrish
+maintainer:          daveparrish@tutanota.com
+
+category:            Unknown
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  default-language:  Haskell2010
+  ghc-options:       -Wall -Werror -O2
+  hs-source-dirs:    src
+  exposed-modules:   CheckPacman
+  build-depends:     base >= 4.8 && < 5
+                   , nagios-check
+                   , optparse-applicative
+                   , process
+                   , text
+
+executable check_pacman
+  hs-source-dirs:      app
+  ghc-options:         -Wall -Werror -O2 -Wall -threaded -rtsopts -with-rtsopts=-N
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , check-pacman
+                     
+test-suite check_pacman-test
+  type:              exitcode-stdio-1.0
+  default-language:  Haskell2010
+  ghc-options:       -Wall -Werror -O2 -Wall -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs:    src-test
+  main-is:           Main.hs
+  build-depends:     base >= 4.8 && < 5
+                   , tasty >= 0.11
+                   , tasty-hunit >= 0.9
+                   , tasty-smallcheck >= 0.8
+                   , check-pacman
