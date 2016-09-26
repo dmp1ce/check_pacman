@@ -12,4 +12,4 @@ Available options:
   -w,--warning INT         Return warning if greater than INT and less than
                            critical INT. Default is 1.
   -c,--critical INT        Return critical if greater than INT. Default is 20.
-  ```
+```
