@@ -25,7 +25,6 @@ module CheckPacman where
 import System.Nagios.Plugin
 import Options.Applicative
 import System.Process
-import System.Exit
 import Data.Text
 
 type PackageUpdate = String
@@ -54,10 +53,10 @@ pluginOptions = PluginOptions
      <> help "Return critical if greater than INT.\
              \ Default is 20." )
 
-addUpdatePerfData :: Int -- ^ Number of updates
+addPluginPerfData :: Int -- ^ Number of updates
                   -> PluginOptions
                   -> NagiosPlugin ()
-addUpdatePerfData n (PluginOptions w c) =
+addPluginPerfData n (PluginOptions w c) =
   addPerfDatum (pack "Updates")
                (IntegralValue (fromIntegral n))
                NullUnit
@@ -69,24 +68,27 @@ addUpdatePerfData n (PluginOptions w c) =
 execCheck :: PluginOptions -> IO ()
 execCheck o = do
   (_,_,_) <- readProcessWithExitCode "pacman" ["-Sy"] []
-  (code,out,_) <- readProcessWithExitCode "pacman" ["-Qu"] []
-  putStrLn $ show code
+  (_,out,_) <- readProcessWithExitCode "pacman" ["-Qu"] []
   let updates = parsePacmanUpdates out
-  let num_of_updates = Prelude.length updates
+  let num_updates = Prelude.length updates
 
-  runNagiosPlugin $
-    if num_of_updates > 0
-    then do
-      addResult Critical $
-        pack $ (show num_of_updates) ++ " packages have available updates.\n" ++
-        ((Prelude.unwords) updates)
-      addUpdatePerfData num_of_updates o
-    else
-      if code == (ExitFailure 1)
-      then do addResult OK $ pack "Installed packages are up-to-date."
-              addUpdatePerfData num_of_updates o
-      else addResult Unknown $
-        pack $ "Pacman exited with '" ++ (show code) ++ "'." 
+  runNagiosPlugin $ do
+    addPluginResult num_updates updates o
+    addPluginPerfData num_updates o
+  where
+    addPluginResult :: Int -> [PackageUpdate] -> PluginOptions -> NagiosPlugin ()
+    addPluginResult n u (PluginOptions w c)
+      | n == 0    = do
+          addResult OK $ pack "Installed packages are all up-to-date."
+      | n < w     = addUpdatesResult n u OK
+      | n >= w || n < c
+                  = addUpdatesResult n u Warning
+      | otherwise = addUpdatesResult n u Critical
+    addUpdatesResult :: Int -> [PackageUpdate] -> CheckStatus -> NagiosPlugin ()
+    addUpdatesResult n u cs = addResult cs $
+      pack ((show n)
+      ++ " packages have available updates.\n"
+      ++ ((Prelude.unwords) u))
 
 mainExecParser :: IO ()
 mainExecParser = execParser opts >>= execCheck

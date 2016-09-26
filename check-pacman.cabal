@@ -1,5 +1,5 @@
 name:                check-pacman
-version:             1.0.0
+version:             1.1.0
 synopsis:            Nagios monitoring plugin for checking for Pacman updates
 description:         Please see README.md
 
