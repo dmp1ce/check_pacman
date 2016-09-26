@@ -4,6 +4,9 @@
 Bug fixes
 
 - Remove debug output
+
+Features implemented
+
 - Add possibility or Warning result
 - Add possibility for available updates but OK result
 
