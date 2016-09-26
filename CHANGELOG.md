@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+Bug fixes
+
+- Allow CRITICAL results to occur
+- Count and output lines, not words, for Pacman updates
+
 ## 1.1.0
 Bug fixes
 

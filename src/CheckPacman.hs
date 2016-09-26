@@ -34,7 +34,7 @@ data PluginOptions = PluginOptions
   , criticalThreshold :: Int }
 
 parsePacmanUpdates :: String -> [PackageUpdate]
-parsePacmanUpdates = Prelude.words
+parsePacmanUpdates = Prelude.lines
 
 pluginOptions :: Parser PluginOptions
 pluginOptions = PluginOptions
@@ -81,14 +81,14 @@ execCheck o = do
       | n == 0    = do
           addResult OK $ pack "Installed packages are all up-to-date."
       | n < w     = addUpdatesResult n u OK
-      | n >= w || n < c
+      | n >= w && n < c
                   = addUpdatesResult n u Warning
       | otherwise = addUpdatesResult n u Critical
     addUpdatesResult :: Int -> [PackageUpdate] -> CheckStatus -> NagiosPlugin ()
     addUpdatesResult n u cs = addResult cs $
       pack ((show n)
       ++ " packages have available updates.\n"
-      ++ ((Prelude.unwords) u))
+      ++ ((Prelude.unlines) u))
 
 mainExecParser :: IO ()
 mainExecParser = execParser opts >>= execCheck
