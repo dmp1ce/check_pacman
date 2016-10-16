@@ -25,7 +25,7 @@ module CheckPacman where
 import System.Nagios.Plugin
 import Options.Applicative
 import System.Process
-import Data.Text
+import qualified Data.Text as T
 
 type PackageUpdate = String
 
@@ -34,7 +34,7 @@ data PluginOptions = PluginOptions
   , criticalThreshold :: Int }
 
 parsePacmanUpdates :: String -> [PackageUpdate]
-parsePacmanUpdates = Prelude.lines
+parsePacmanUpdates = lines
 
 pluginOptions :: Parser PluginOptions
 pluginOptions = PluginOptions
@@ -57,7 +57,7 @@ addPluginPerfData :: Int -- ^ Number of updates
                   -> PluginOptions
                   -> NagiosPlugin ()
 addPluginPerfData n (PluginOptions w c) =
-  addPerfDatum (pack "Updates")
+  addPerfDatum (T.pack "Updates")
                (IntegralValue (fromIntegral n))
                NullUnit
                (Just $ IntegralValue 0)
@@ -67,10 +67,10 @@ addPluginPerfData n (PluginOptions w c) =
 
 execCheck :: PluginOptions -> IO ()
 execCheck o = do
-  (_,_,_) <- readProcessWithExitCode "pacman" ["-Sy"] []
-  (_,out,_) <- readProcessWithExitCode "pacman" ["-Qu"] []
+  (_,out,_) <- callProcess "pacman" ["-Sy"]
+    >> readProcessWithExitCode "pacman" ["-Qu"] []
   let updates = parsePacmanUpdates out
-  let num_updates = Prelude.length updates
+  let num_updates = length updates
 
   runNagiosPlugin $ do
     addPluginResult num_updates updates o
@@ -79,16 +79,16 @@ execCheck o = do
     addPluginResult :: Int -> [PackageUpdate] -> PluginOptions -> NagiosPlugin ()
     addPluginResult n u (PluginOptions w c)
       | n == 0    = do
-          addResult OK $ pack "Installed packages are all up-to-date."
+          addResult OK $ T.pack "Installed packages are all up-to-date."
       | n < w     = addUpdatesResult n u OK
       | n >= w && n < c
                   = addUpdatesResult n u Warning
       | otherwise = addUpdatesResult n u Critical
     addUpdatesResult :: Int -> [PackageUpdate] -> CheckStatus -> NagiosPlugin ()
     addUpdatesResult n u cs = addResult cs $
-      pack ((show n)
+      T.pack ((show n)
       ++ " packages have available updates.\n"
-      ++ ((Prelude.unlines) u))
+      ++ ((unlines) u))
 
 mainExecParser :: IO ()
 mainExecParser = execParser opts >>= execCheck
