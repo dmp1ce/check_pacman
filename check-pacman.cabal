@@ -40,5 +40,6 @@ test-suite check_pacman-test
   build-depends:     base >= 4.8 && < 5
                    , tasty >= 0.11
                    , tasty-hunit >= 0.9
-                   , tasty-smallcheck >= 0.8
                    , check-pacman
+                   , neat-interpolation
+                   , text

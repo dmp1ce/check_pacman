@@ -67,7 +67,7 @@ addPluginPerfData n (PluginOptions w c) =
 
 execCheck :: PluginOptions -> IO ()
 execCheck o = do
-  (_,out,_) <- callProcess "pacman" ["-Sy"]
+  (_,out,_) <- readProcess "pacman" ["-Sy"] []
     >> readProcessWithExitCode "pacman" ["-Qu"] []
   let updates = parsePacmanUpdates out
   let num_updates = length updates
